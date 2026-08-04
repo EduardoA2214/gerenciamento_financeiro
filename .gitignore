@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Banco de dados SQLite (dados locais, não devem ir pro repo)
+server/*.db
+server/*.db-journal
+server/*.sqlite
+server/*.sqlite3
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+*.log
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Build output
+dist/
+release/
+
+# Chave de segredo persistida em runtime (não é gerada no repo, mas por garantia)
+*.jwt-secret

@@ -1,0 +1,82 @@
+{
+  "name": "gerenciamento-financeiro",
+  "version": "1.0.0",
+  "description": "Backend para gerenciamento financeiro pessoal",
+  "author": "Eduardo A.",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "server": "node server/server.js",
+    "client": "vite",
+    "dev": "concurrently -n SERVER,CLIENT -c blue,yellow \"npm:server\" \"npm:client\"",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test",
+    "electron": "electron .",
+    "electron:pack": "electron-builder --dir",
+    "dist:win": "npm run build && electron-builder --win"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.0",
+    "dotenv": "^17.4.2",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.6.1",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.2",
+    "recharts": "^3.10.1",
+    "sqlite3": "^5.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-react": "^6.0.5",
+    "concurrently": "^10.0.4",
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3",
+    "png-to-ico": "^3.0.2",
+    "sharp": "^0.35.3",
+    "supertest": "^7.0.0",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.2.0"
+  },
+  "build": {
+    "appId": "com.gerenciamentofinanceiro.app",
+    "productName": "Gerenciamento Financeiro",
+    "copyright": "Copyright © 2026 Eduardo A.",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "server/**/*",
+      "build/icon.ico",
+      "package.json",
+      "!server/*.db",
+      "!server/*.db-journal",
+      "!.env",
+      "!.env.example"
+    ],
+    "asarUnpack": [
+      "node_modules/sqlite3/**"
+    ],
+    "icon": "build/icon.ico",
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "allowScripts": {
+    "electron-winstaller@5.4.0": true,
+    "sqlite3@5.1.7": true
+  }
+}
