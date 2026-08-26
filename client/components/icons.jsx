@@ -109,6 +109,28 @@ export function IconTrendUp(props) {
   );
 }
 
+export function IconCalendarCheck(props) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="3" y="4.5" width="18" height="16" rx="2" />
+      <path d="M3 9.5h18" />
+      <path d="M8 3v3M16 3v3" />
+      <path d="m8.5 14 2.2 2.2L15.5 12" />
+    </svg>
+  );
+}
+
+export function IconRepeat(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M17 2.5 20.5 6 17 9.5" />
+      <path d="M3.5 11V9a3 3 0 0 1 3-3h14" />
+      <path d="M7 21.5 3.5 18 7 14.5" />
+      <path d="M20.5 13v2a3 3 0 0 1-3 3h-14" />
+    </svg>
+  );
+}
+
 export function IconTrendDown(props) {
   return (
     <svg {...base} {...props}>

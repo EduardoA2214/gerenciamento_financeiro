@@ -52,7 +52,11 @@ Gerar o instalador `.exe` (Windows):
 npm run dist:win
 ```
 
-O instalador final fica em `release/Gerenciamento Financeiro Setup <versão>.exe`. Ele instala o app, cria atalho no Desktop e no Menu Iniciar, e abre em tela cheia (aperte **Esc** pra sair do modo tela cheia).
+O instalador final fica em **`C:\build-temp\release\Gerenciamento Financeiro Setup <versão>.exe`** (fora da pasta do projeto — veja o porquê abaixo). Ele instala o app, cria atalho no Desktop e no Menu Iniciar, e abre em tela cheia (aperte **Esc** pra sair do modo tela cheia).
+
+### Por que o build sai fora da pasta do projeto
+
+Nesta máquina, gerar o instalador dentro de `C:\Users\...\Desktop\Gerenciamento financeiro\release` trava de forma consistente (`EBUSY`/`EPERM` ao extrair o Electron), mesmo com antivírus, Controlado de Pastas, OneDrive e indexação descartados como causa. Buildar em `C:\build-temp\release` (fora da pasta Desktop) resolve. Os scripts `dist:win` e `electron:pack` já apontam pra lá via `--config.directories.output`. Se quiser mudar esse caminho, edite os scripts em `package.json`.
 
 ## Scripts disponíveis
 
@@ -88,3 +92,10 @@ build/      → Ícone do app (usado pelo electron-builder)
 ## Créditos
 
 Veja [CREDITS.md](CREDITS.md) para atribuição de recursos visuais usados no app.
+
+_________________________________________________
+LOGIN
+
+User: Admin
+Password: Admin
+_________________________________________________

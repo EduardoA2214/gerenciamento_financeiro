@@ -3,6 +3,7 @@ import Card from './ui/Card';
 export default function StatCard({ label, value, icon: Icon, highlight = false }) {
   return (
     <Card
+      hover
       className={`flex items-center justify-between gap-3 p-5 ${
         highlight ? '!bg-navy-900 !border-navy-900 text-white' : ''
       }`}

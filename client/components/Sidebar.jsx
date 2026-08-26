@@ -7,7 +7,7 @@ import { IconHome, IconWallet, IconBanknote, IconTag, IconLogout, IconUser, Icon
 const navItems = [
   { to: '/', label: 'Dashboard', icon: IconHome, end: true },
   { to: '/gastos', label: 'Gastos', icon: IconWallet },
-  { to: '/salarios', label: 'Salários', icon: IconBanknote },
+  { to: '/renda', label: 'Renda', icon: IconBanknote },
   { to: '/categorias', label: 'Categorias', icon: IconTag }
 ];
 

@@ -20,8 +20,8 @@ export default function SpendingDonut({ totalSalario, totalGastos, saldo }) {
   return (
     <Card className="flex flex-col gap-5 p-5 lg:p-6">
       <div>
-        <h2 className="text-sm font-semibold text-ink">% do salário gasto</h2>
-        <p className="text-xs text-ink-muted">Comparado ao total de salários cadastrados</p>
+        <h2 className="text-sm font-semibold text-ink">% da renda gasta</h2>
+        <p className="text-xs text-ink-muted">Comparado ao total de renda cadastrada</p>
       </div>
 
       <div className="flex items-center gap-5">
@@ -44,13 +44,13 @@ export default function SpendingDonut({ totalSalario, totalGastos, saldo }) {
           </ResponsiveContainer>
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-xl font-bold text-ink">{pct}%</span>
-            {overspent && <span className="text-[10px] font-semibold text-critical">acima do salário</span>}
+            {overspent && <span className="text-[10px] font-semibold text-critical">acima da renda</span>}
           </div>
         </div>
 
         <dl className="flex-1 space-y-3 text-sm">
           <div className="flex items-center justify-between gap-3">
-            <dt className="text-ink-muted">Salário</dt>
+            <dt className="text-ink-muted">Renda</dt>
             <dd className="font-semibold text-ink">{formatCurrency(totalSalario)}</dd>
           </div>
           <div className="flex items-center justify-between gap-3">

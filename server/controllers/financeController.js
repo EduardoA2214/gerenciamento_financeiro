@@ -2,17 +2,17 @@ const { run, all, get } = require('../db');
 
 async function createSalary(req, res) {
   try {
-    const { valor, descricao = 'Salário' } = req.body;
+    const { valor, descricao = 'Renda' } = req.body;
 
     if (typeof valor !== 'number' || Number.isNaN(valor) || valor <= 0) {
-      return res.status(400).json({ error: 'O valor do salário deve ser um número maior que zero.' });
+      return res.status(400).json({ error: 'O valor da renda deve ser um número maior que zero.' });
     }
 
     const result = await run('INSERT INTO salarios (valor, descricao) VALUES (?, ?)', [valor, descricao]);
-    return res.status(201).json({ id: result.id, valor, descricao, message: 'Salário cadastrado com sucesso.' });
+    return res.status(201).json({ id: result.id, valor, descricao, message: 'Renda cadastrada com sucesso.' });
   } catch (error) {
-    console.error('Erro ao cadastrar salário:', error);
-    return res.status(500).json({ error: 'Erro ao cadastrar salário.' });
+    console.error('Erro ao cadastrar renda:', error);
+    return res.status(500).json({ error: 'Erro ao cadastrar renda.' });
   }
 }
 
@@ -21,8 +21,87 @@ async function listSalaries(req, res) {
     const rows = await all('SELECT * FROM salarios ORDER BY data DESC');
     return res.json(rows);
   } catch (error) {
-    console.error('Erro ao buscar salários:', error);
-    return res.status(500).json({ error: 'Erro ao buscar salários.' });
+    console.error('Erro ao buscar renda:', error);
+    return res.status(500).json({ error: 'Erro ao buscar renda.' });
+  }
+}
+
+async function deleteSalary(req, res) {
+  try {
+    const { id } = req.params;
+
+    const salario = await get('SELECT id FROM salarios WHERE id = ?', [id]);
+    if (!salario) {
+      return res.status(404).json({ error: 'Renda não encontrada.' });
+    }
+
+    await run('DELETE FROM salarios WHERE id = ?', [id]);
+    return res.json({ message: 'Renda excluída com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao excluir renda:', error);
+    return res.status(500).json({ error: 'Erro ao excluir renda.' });
+  }
+}
+
+async function createRendaFixa(req, res) {
+  try {
+    const { descricao, valor, diaMes } = req.body;
+
+    if (!descricao || typeof descricao !== 'string' || descricao.trim() === '') {
+      return res.status(400).json({ error: 'A descrição da renda é obrigatória.' });
+    }
+
+    if (typeof valor !== 'number' || Number.isNaN(valor) || valor <= 0) {
+      return res.status(400).json({ error: 'O valor da renda deve ser um número maior que zero.' });
+    }
+
+    const dia = Number(diaMes);
+    if (!Number.isInteger(dia) || dia < 1 || dia > 31) {
+      return res.status(400).json({ error: 'O dia do mês deve ser um número entre 1 e 31.' });
+    }
+
+    const result = await run(
+      'INSERT INTO rendas_fixas (descricao, valor, dia_mes) VALUES (?, ?, ?)',
+      [descricao.trim(), valor, dia]
+    );
+
+    return res.status(201).json({
+      id: result.id,
+      descricao: descricao.trim(),
+      valor,
+      diaMes: dia,
+      message: 'Renda fixa cadastrada com sucesso.'
+    });
+  } catch (error) {
+    console.error('Erro ao cadastrar renda fixa:', error);
+    return res.status(500).json({ error: 'Erro ao cadastrar renda fixa.' });
+  }
+}
+
+async function listRendasFixas(req, res) {
+  try {
+    const rows = await all('SELECT id, descricao, valor, dia_mes AS diaMes, criado_em AS criadoEm FROM rendas_fixas ORDER BY dia_mes ASC');
+    return res.json(rows);
+  } catch (error) {
+    console.error('Erro ao buscar rendas fixas:', error);
+    return res.status(500).json({ error: 'Erro ao buscar rendas fixas.' });
+  }
+}
+
+async function deleteRendaFixa(req, res) {
+  try {
+    const { id } = req.params;
+
+    const rendaFixa = await get('SELECT id FROM rendas_fixas WHERE id = ?', [id]);
+    if (!rendaFixa) {
+      return res.status(404).json({ error: 'Renda fixa não encontrada.' });
+    }
+
+    await run('DELETE FROM rendas_fixas WHERE id = ?', [id]);
+    return res.json({ message: 'Renda fixa excluída com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao excluir renda fixa:', error);
+    return res.status(500).json({ error: 'Erro ao excluir renda fixa.' });
   }
 }
 
@@ -82,6 +161,23 @@ async function listExpenses(req, res) {
   } catch (error) {
     console.error('Erro ao buscar gastos:', error);
     return res.status(500).json({ error: 'Erro ao buscar gastos.' });
+  }
+}
+
+async function deleteExpense(req, res) {
+  try {
+    const { id } = req.params;
+
+    const gasto = await get('SELECT id FROM gastos WHERE id = ?', [id]);
+    if (!gasto) {
+      return res.status(404).json({ error: 'Gasto não encontrado.' });
+    }
+
+    await run('DELETE FROM gastos WHERE id = ?', [id]);
+    return res.json({ message: 'Gasto excluído com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao excluir gasto:', error);
+    return res.status(500).json({ error: 'Erro ao excluir gasto.' });
   }
 }
 
@@ -170,13 +266,77 @@ async function getSummary(req, res) {
   }
 }
 
+async function lancarRendaFixa(req, res) {
+  try {
+    const { id } = req.params;
+
+    const rendaFixa = await get('SELECT * FROM rendas_fixas WHERE id = ?', [id]);
+    if (!rendaFixa) {
+      return res.status(404).json({ error: 'Renda fixa não encontrada.' });
+    }
+
+    const salariosResumo = await all('SELECT COALESCE(SUM(valor), 0) AS total FROM salarios');
+    const gastosResumo = await all('SELECT COALESCE(SUM(valor), 0) AS total FROM gastos');
+    const saldoAnterior = Number(salariosResumo[0].total || 0) - Number(gastosResumo[0].total || 0);
+    const novoValor = saldoAnterior + Number(rendaFixa.valor);
+
+    await run('BEGIN TRANSACTION');
+    try {
+      // Ao entrar um novo salário, os gastos do mês anterior são zerados (a % gasta
+      // recomeça do zero) e o saldo que restava é somado à nova renda, sem se perder.
+      await run('DELETE FROM gastos');
+      await run('DELETE FROM salarios');
+      await run('INSERT INTO salarios (valor, descricao) VALUES (?, ?)', [novoValor, rendaFixa.descricao]);
+      await run('COMMIT');
+    } catch (transactionError) {
+      await run('ROLLBACK');
+      throw transactionError;
+    }
+
+    return res.status(201).json({
+      message: 'Renda lançada com sucesso.',
+      valor: novoValor,
+      saldoAnteriorIncluido: saldoAnterior
+    });
+  } catch (error) {
+    console.error('Erro ao lançar renda fixa:', error);
+    return res.status(500).json({ error: 'Erro ao lançar renda fixa.' });
+  }
+}
+
+async function limparDados(req, res) {
+  try {
+    await run('BEGIN TRANSACTION');
+    try {
+      await run('DELETE FROM gastos');
+      await run('DELETE FROM salarios');
+      await run('COMMIT');
+    } catch (transactionError) {
+      await run('ROLLBACK');
+      throw transactionError;
+    }
+
+    return res.json({ message: 'Dados limpos com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao limpar dados:', error);
+    return res.status(500).json({ error: 'Erro ao limpar dados.' });
+  }
+}
+
 module.exports = {
   createSalary,
   listSalaries,
+  deleteSalary,
+  createRendaFixa,
+  listRendasFixas,
+  deleteRendaFixa,
+  lancarRendaFixa,
   createExpense,
   listExpenses,
+  deleteExpense,
   listCategories,
   createCategoryHandler,
   deleteCategory,
-  getSummary
+  getSummary,
+  limparDados
 };

@@ -16,33 +16,32 @@ export default function Dashboard() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let active = true;
-
-    async function load() {
-      setLoading(true);
-      setError('');
-      try {
-        const [resumoData, gastosData, salariosData] = await Promise.all([
-          getResumo(),
-          listGastos(),
-          listSalarios()
-        ]);
-        if (!active) return;
-        setResumo(resumoData);
-        setGastos(gastosData);
-        setSalarios(salariosData);
-      } catch (err) {
-        if (active) setError(err.message);
-      } finally {
-        if (active) setLoading(false);
-      }
+  async function load() {
+    setError('');
+    try {
+      const [resumoData, gastosData, salariosData] = await Promise.all([
+        getResumo(),
+        listGastos(),
+        listSalarios()
+      ]);
+      setResumo(resumoData);
+      setGastos(gastosData);
+      setSalarios(salariosData);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
+  }
 
+  useEffect(() => {
     load();
-    return () => {
-      active = false;
-    };
+
+    function handleDadosLimpos() {
+      load();
+    }
+    window.addEventListener('dados:limpos', handleDadosLimpos);
+    return () => window.removeEventListener('dados:limpos', handleDadosLimpos);
   }, []);
 
   if (loading) {
@@ -63,9 +62,14 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col gap-5 pt-2">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wide text-brand-orange">Visão geral</p>
+        <p className="mt-1 text-sm text-ink-muted">Seu resumo financeiro, atualizado em tempo real.</p>
+      </div>
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Saldo" value={formatCurrency(resumo.saldo)} icon={IconTrendUp} highlight />
-        <StatCard label="Salários" value={formatCurrency(resumo.totalSalario)} icon={IconBanknote} />
+        <StatCard label="Renda" value={formatCurrency(resumo.totalSalario)} icon={IconBanknote} />
         <StatCard label="Gastos" value={formatCurrency(resumo.totalGastos)} icon={IconWallet} />
         <StatCard label="Qtd. de gastos" value={resumo.quantidadeDeGastos} icon={IconTag} />
       </div>

@@ -194,7 +194,7 @@ export default function Conta() {
             label="Nova senha"
             type="password"
             autoComplete="new-password"
-            minLength={6}
+            minLength={5}
             value={novaSenha}
             onChange={(e) => setNovaSenha(e.target.value)}
             required
@@ -205,7 +205,7 @@ export default function Conta() {
             label="Confirmar nova senha"
             type="password"
             autoComplete="new-password"
-            minLength={6}
+            minLength={5}
             value={confirmarSenha}
             onChange={(e) => setConfirmarSenha(e.target.value)}
             required

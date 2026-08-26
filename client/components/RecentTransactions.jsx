@@ -8,7 +8,7 @@ function mergeTransactions(gastos, salarios) {
   const receitas = salarios.map((s) => ({
     id: `salario-${s.id}`,
     tipo: 'entrada',
-    descricao: s.descricao || 'Salário',
+    descricao: s.descricao || 'Renda',
     categoria: null,
     valor: Number(s.valor),
     data: s.data
@@ -35,7 +35,7 @@ export default function RecentTransactions({ gastos, salarios }) {
     <Card className="p-5 lg:p-6">
       <div className="mb-4">
         <h2 className="text-sm font-semibold text-ink">Últimos lançamentos</h2>
-        <p className="text-xs text-ink-muted">Salários e gastos mais recentes</p>
+        <p className="text-xs text-ink-muted">Renda e gastos mais recentes</p>
       </div>
 
       {items.length === 0 ? (

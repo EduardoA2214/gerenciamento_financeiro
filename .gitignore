@@ -22,9 +22,11 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
-# Build output
+# Build output (o instalador é gerado fora da pasta do projeto, ver README)
 dist/
 release/
+release2/
+build-temprelease/
 
 # Chave de segredo persistida em runtime (não é gerada no repo, mas por garantia)
 *.jwt-secret

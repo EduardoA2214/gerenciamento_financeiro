@@ -7,7 +7,7 @@ import { isAuthenticated } from '../utils/auth';
 const TITLES = {
   '/': 'Dashboard',
   '/gastos': 'Gastos',
-  '/salarios': 'Salários',
+  '/renda': 'Renda',
   '/categorias': 'Categorias',
   '/conta': 'Minha conta'
 };
@@ -48,7 +48,9 @@ export default function ProtectedLayout() {
       <div className="flex min-h-screen flex-1 flex-col lg:pl-0">
         <Topbar title={TITLES[location.pathname] || 'Finanças'} onMenuClick={() => setSidebarOpen(true)} />
         <main className="flex-1 px-4 pb-10 lg:px-8">
-          <Outlet />
+          <div key={location.pathname} className="animate-page">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

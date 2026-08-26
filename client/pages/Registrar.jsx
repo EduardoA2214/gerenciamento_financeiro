@@ -55,7 +55,7 @@ export default function Registrar() {
           label="Senha"
           type="password"
           autoComplete="new-password"
-          minLength={6}
+          minLength={5}
           value={senha}
           onChange={(e) => setSenha(e.target.value)}
           required
@@ -66,7 +66,7 @@ export default function Registrar() {
           label="Confirmar senha"
           type="password"
           autoComplete="new-password"
-          minLength={6}
+          minLength={5}
           value={confirmarSenha}
           onChange={(e) => setConfirmarSenha(e.target.value)}
           required

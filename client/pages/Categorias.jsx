@@ -3,6 +3,7 @@ import Card from '../components/ui/Card';
 import Alert from '../components/ui/Alert';
 import Spinner from '../components/ui/Spinner';
 import AddCategoryForm from '../components/AddCategoryForm';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 import { deleteCategoria, getResumo, listCategorias } from '../services/financeService';
 import { formatCurrency } from '../utils/format';
 import { IconTag, IconTrash } from '../components/icons';
@@ -13,6 +14,7 @@ export default function Categorias() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState(null);
+  const [categoriaParaExcluir, setCategoriaParaExcluir] = useState(null);
 
   async function loadData() {
     setError('');
@@ -31,11 +33,13 @@ export default function Categorias() {
     loadData();
   }, []);
 
-  async function handleDelete(categoria) {
-    const confirmado = window.confirm(
-      `Excluir a categoria "${categoria.nome}"? Gastos já cadastrados nela passam a aparecer como "Outros".`
-    );
-    if (!confirmado) return;
+  function handleDelete(categoria) {
+    setCategoriaParaExcluir(categoria);
+  }
+
+  async function handleConfirmDelete() {
+    const categoria = categoriaParaExcluir;
+    if (!categoria) return;
 
     setError('');
     setDeletingId(categoria.id);
@@ -46,6 +50,7 @@ export default function Categorias() {
       setError(err.message);
     } finally {
       setDeletingId(null);
+      setCategoriaParaExcluir(null);
     }
   }
 
@@ -68,7 +73,7 @@ export default function Categorias() {
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {categorias.map((c) => (
-                <Card key={c.id} className="flex items-center gap-3 p-5">
+                <Card key={c.id} hover className="flex items-center gap-3 p-5">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-orange/10 text-brand-orange">
                     <IconTag className="h-5 w-5" />
                   </div>
@@ -91,6 +96,20 @@ export default function Categorias() {
           )}
         </>
       )}
+
+      <ConfirmDialog
+        open={Boolean(categoriaParaExcluir)}
+        title="Excluir categoria"
+        message={
+          categoriaParaExcluir
+            ? `Excluir a categoria "${categoriaParaExcluir.nome}"? Gastos já cadastrados nela passam a aparecer como "Outros".`
+            : ''
+        }
+        confirmLabel="Excluir"
+        loading={deletingId === categoriaParaExcluir?.id}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setCategoriaParaExcluir(null)}
+      />
     </div>
   );
 }

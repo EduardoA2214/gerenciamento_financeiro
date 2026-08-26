@@ -13,8 +13,8 @@
     "preview": "vite preview",
     "test": "node --test",
     "electron": "electron .",
-    "electron:pack": "electron-builder --dir",
-    "dist:win": "npm run build && electron-builder --win"
+    "electron:pack": "electron-builder --dir --config.directories.output=C:\\build-temp\\release",
+    "dist:win": "npm run build && electron-builder --win --config.directories.output=C:\\build-temp\\release"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -35,7 +35,7 @@
     "@vitejs/plugin-react": "^6.0.5",
     "concurrently": "^10.0.4",
     "electron": "^43.2.0",
-    "electron-builder": "^26.15.3",
+    "electron-builder": "^26.15.7",
     "png-to-ico": "^3.0.2",
     "sharp": "^0.35.3",
     "supertest": "^7.0.0",

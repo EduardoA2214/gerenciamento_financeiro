@@ -4,9 +4,10 @@ import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import Alert from '../components/ui/Alert';
 import Spinner from '../components/ui/Spinner';
-import { createGasto, listCategorias, listGastos } from '../services/financeService';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
+import { createGasto, deleteGasto, listCategorias, listGastos } from '../services/financeService';
 import { formatCurrency, formatDate } from '../utils/format';
-import { IconPlus } from '../components/icons';
+import { IconPlus, IconTrash } from '../components/icons';
 
 export default function Gastos() {
   const [gastos, setGastos] = useState([]);
@@ -19,6 +20,8 @@ export default function Gastos() {
   const [categoria, setCategoria] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
+  const [deletingId, setDeletingId] = useState(null);
+  const [gastoParaExcluir, setGastoParaExcluir] = useState(null);
 
   async function loadData() {
     setLoading(true);
@@ -36,6 +39,12 @@ export default function Gastos() {
 
   useEffect(() => {
     loadData();
+
+    function handleDadosLimpos() {
+      loadData();
+    }
+    window.addEventListener('dados:limpos', handleDadosLimpos);
+    return () => window.removeEventListener('dados:limpos', handleDadosLimpos);
   }, []);
 
   async function handleSubmit(event) {
@@ -59,6 +68,27 @@ export default function Gastos() {
       setFormError(err.message);
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  function handleDelete(gasto) {
+    setGastoParaExcluir(gasto);
+  }
+
+  async function handleConfirmDelete() {
+    const gasto = gastoParaExcluir;
+    if (!gasto) return;
+
+    setError('');
+    setDeletingId(gasto.id);
+    try {
+      await deleteGasto(gasto.id);
+      await loadData();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setDeletingId(null);
+      setGastoParaExcluir(null);
     }
   }
 
@@ -131,6 +161,7 @@ export default function Gastos() {
                   <th className="py-2 pr-4 font-medium">Categoria</th>
                   <th className="py-2 pr-4 font-medium">Data</th>
                   <th className="py-2 pl-4 text-right font-medium">Valor</th>
+                  <th className="py-2 pl-4 text-right font-medium"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -140,6 +171,17 @@ export default function Gastos() {
                     <td className="py-3 pr-4 text-ink-muted">{g.categoria || 'Outros'}</td>
                     <td className="py-3 pr-4 text-ink-muted">{formatDate(g.data)}</td>
                     <td className="py-3 pl-4 text-right font-semibold text-critical">{formatCurrency(g.valor)}</td>
+                    <td className="py-3 pl-4 text-right">
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(g)}
+                        disabled={deletingId === g.id}
+                        aria-label={`Excluir gasto ${g.descricao}`}
+                        className="cursor-pointer rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-critical/10 hover:text-critical disabled:opacity-50"
+                      >
+                        <IconTrash className="h-4 w-4" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -147,6 +189,20 @@ export default function Gastos() {
           </div>
         )}
       </Card>
+
+      <ConfirmDialog
+        open={Boolean(gastoParaExcluir)}
+        title="Excluir gasto"
+        message={
+          gastoParaExcluir
+            ? `Excluir o gasto "${gastoParaExcluir.descricao}" de ${formatCurrency(gastoParaExcluir.valor)}?`
+            : ''
+        }
+        confirmLabel="Excluir"
+        loading={deletingId === gastoParaExcluir?.id}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setGastoParaExcluir(null)}
+      />
     </div>
   );
 }

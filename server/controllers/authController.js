@@ -20,8 +20,8 @@ async function registrar(req, res) {
       return res.status(400).json({ error: 'O usuário deve ter pelo menos 3 caracteres.' });
     }
 
-    if (!senha || typeof senha !== 'string' || senha.length < 6) {
-      return res.status(400).json({ error: 'A senha deve ter pelo menos 6 caracteres.' });
+    if (!senha || typeof senha !== 'string' || senha.length < 5) {
+      return res.status(400).json({ error: 'A senha deve ter pelo menos 5 caracteres.' });
     }
 
     const usuarioNormalizado = usuario.trim();
@@ -96,8 +96,8 @@ async function atualizarSenha(req, res) {
       return res.status(400).json({ error: 'Informe a senha atual e a nova senha.' });
     }
 
-    if (typeof novaSenha !== 'string' || novaSenha.length < 6) {
-      return res.status(400).json({ error: 'A nova senha deve ter pelo menos 6 caracteres.' });
+    if (typeof novaSenha !== 'string' || novaSenha.length < 5) {
+      return res.status(400).json({ error: 'A nova senha deve ter pelo menos 5 caracteres.' });
     }
 
     const usuarioRow = await get('SELECT * FROM usuarios WHERE id = ?', [req.usuario.id]);

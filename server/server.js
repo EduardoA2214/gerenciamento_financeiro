@@ -73,10 +73,16 @@ function startServer(preferredPort = Number(process.env.PORT) || 4001, attempts 
 }
 
 if (require.main === module) {
-  startServer().catch((error) => {
-    console.error('Erro ao iniciar o servidor:', error);
-    process.exit(1);
-  });
+  startServer()
+    .then(({ port }) => {
+      console.log(`\nAPI rodando (só o backend, sem tela).`);
+      console.log(`Teste em: http://localhost:${port}/api/health`);
+      console.log(`Pra usar o app com tela, rode "npm run dev" em vez disso.\n`);
+    })
+    .catch((error) => {
+      console.error('Erro ao iniciar o servidor:', error);
+      process.exit(1);
+    });
 }
 
 module.exports = { app, closeDb, initializeDb, startServer };

@@ -75,6 +75,15 @@ function initializeSchema() {
       )
     `))
     .then(() => run(`
+      CREATE TABLE IF NOT EXISTS rendas_fixas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        descricao TEXT NOT NULL,
+        valor REAL NOT NULL,
+        dia_mes INTEGER NOT NULL,
+        criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `))
+    .then(() => run(`
       CREATE TABLE IF NOT EXISTS usuarios (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         usuario TEXT NOT NULL UNIQUE,
