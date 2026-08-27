@@ -3,14 +3,14 @@ import Card from '../ui/Card';
 import { formatCurrency } from '../../utils/format';
 
 const TRACK_COLOR = '#e6e9f2';
-const ORANGE = '#f5a623';
+const ACCENT = '#4a5ce8';
 const CRITICAL = '#d03b3b';
 
 export default function SpendingDonut({ totalSalario, totalGastos, saldo }) {
   const overspent = totalSalario > 0 ? totalGastos > totalSalario : totalGastos > 0;
   const rawPct = totalSalario > 0 ? (totalGastos / totalSalario) * 100 : totalGastos > 0 ? 100 : 0;
   const pct = Math.min(100, Math.round(rawPct));
-  const arcColor = overspent ? CRITICAL : ORANGE;
+  const arcColor = overspent ? CRITICAL : ACCENT;
 
   const data = [
     { name: 'gasto', value: pct },
