@@ -31,12 +31,12 @@ export default function Sidebar({ open, onNavigate }) {
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col bg-navy-900 text-white
+      className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col bg-gradient-to-b from-navy-700 to-brand-orange text-white
         transition-transform duration-200 lg:static lg:translate-x-0
         ${open ? 'translate-x-0' : '-translate-x-full'}`}
     >
       <div className="flex flex-col items-center gap-3 border-b border-white/10 px-6 py-8">
-        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-navy-700 text-white/80">
+        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-white/20 text-white ring-2 ring-white/30">
           {foto ? (
             <img src={foto} alt="Foto de perfil" className="h-full w-full object-cover" />
           ) : (
@@ -69,8 +69,8 @@ export default function Sidebar({ open, onNavigate }) {
             end={end}
             onClick={onNavigate}
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors ${
-                isActive ? 'bg-brand-orange text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'
+              `flex items-center gap-3 rounded-full px-4 py-2.5 text-sm font-medium transition-colors ${
+                isActive ? 'bg-white text-navy-900 shadow-md' : 'text-white/70 hover:bg-white/10 hover:text-white'
               }`
             }
           >
@@ -83,7 +83,7 @@ export default function Sidebar({ open, onNavigate }) {
       <div className="border-t border-white/10 p-3">
         <button
           onClick={handleLogout}
-          className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium
+          className="flex w-full cursor-pointer items-center gap-3 rounded-full px-4 py-2.5 text-sm font-medium
             text-white/70 transition-colors hover:bg-white/10 hover:text-white"
         >
           <IconLogout className="h-4.5 w-4.5" />

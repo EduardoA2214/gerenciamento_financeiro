@@ -3,16 +3,16 @@
 @theme {
   --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
 
-  --color-navy-950: #0f172a;
-  --color-navy-900: #16213e;
-  --color-navy-800: #1b2a4a;
-  --color-navy-700: #24365c;
-  --color-navy-600: #33456f;
+  --color-navy-950: #4638c9;
+  --color-navy-900: #5b4fe8;
+  --color-navy-800: #4a3fd6;
+  --color-navy-700: #7b6ef7;
+  --color-navy-600: #9089fa;
 
-  --color-brand-orange: #f5a623;
-  --color-brand-orange-dark: #d98d13;
+  --color-brand-orange: #4a5ce8;
+  --color-brand-orange-dark: #3745cf;
 
-  --color-page: #f4f6fb;
+  --color-page: #f3f2fc;
   --color-ink: #1f2937;
   --color-ink-muted: #8a93a6;
   --color-line: #e6e9f2;
