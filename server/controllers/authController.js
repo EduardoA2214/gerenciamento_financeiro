@@ -107,7 +107,8 @@ async function atualizarSenha(req, res) {
 
     const senhaValida = await bcrypt.compare(senhaAtual, usuarioRow.senha_hash);
     if (!senhaValida) {
-      return res.status(401).json({ error: 'Senha atual incorreta.' });
+      // 403 e não 401: o usuário continua logado, só errou a senha de confirmação
+      return res.status(403).json({ error: 'Senha atual incorreta.' });
     }
 
     const novoHash = await bcrypt.hash(novaSenha, SALT_ROUNDS);
@@ -149,4 +150,41 @@ async function removerFoto(req, res) {
   }
 }
 
-module.exports = { registrar, login, atualizarUsuario, atualizarSenha, atualizarFoto, removerFoto };
+async function excluirConta(req, res) {
+  try {
+    const { senha } = req.body || {};
+    const usuarioId = req.usuario.id;
+
+    if (!senha) {
+      return res.status(400).json({ error: 'Informe sua senha para excluir a conta.' });
+    }
+
+    const usuarioRow = await get('SELECT * FROM usuarios WHERE id = ?', [usuarioId]);
+    if (!usuarioRow) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+
+    const senhaValida = await bcrypt.compare(senha, usuarioRow.senha_hash);
+    if (!senhaValida) {
+      return res.status(403).json({ error: 'Senha incorreta.' });
+    }
+
+    await run('BEGIN TRANSACTION');
+    try {
+      for (const tabela of ['gastos', 'gastos_fixos', 'salarios', 'rendas_fixas', 'categorias']) {
+        await run(`DELETE FROM ${tabela} WHERE usuario_id = ?`, [usuarioId]);
+      }
+      await run('DELETE FROM usuarios WHERE id = ?', [usuarioId]);
+      await run('COMMIT');
+    } catch (transactionError) {
+      await run('ROLLBACK');
+      throw transactionError;
+    }
+
+    return res.json({ message: 'Conta excluída com sucesso.' });
+  } catch (error) {
+    return res.status(500).json({ error: 'Erro ao excluir conta.' });
+  }
+}
+
+module.exports = { registrar, login, atualizarUsuario, atualizarSenha, atualizarFoto, removerFoto, excluirConta };

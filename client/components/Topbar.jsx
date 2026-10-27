@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IconMenu, IconLogout, IconTrash } from './icons';
+import { IconMenu, IconLogout, IconTrash, IconMoon, IconSun } from './icons';
 import { logout } from '../services/authService';
 import { limparDados } from '../services/financeService';
+import { getTema, alternarTema } from '../utils/tema';
 import ConfirmDialog from './ui/ConfirmDialog';
 
 export default function Topbar({ title, onMenuClick }) {
   const navigate = useNavigate();
+  const [tema, setTema] = useState(getTema());
   const [confirmarLimpar, setConfirmarLimpar] = useState(false);
   const [limpando, setLimpando] = useState(false);
   const [limparError, setLimparError] = useState('');
@@ -31,11 +33,11 @@ export default function Topbar({ title, onMenuClick }) {
   }
 
   return (
-    <header className="flex items-center justify-between gap-4 px-4 py-5 lg:px-8">
+    <header className="relative flex items-center justify-between gap-4 px-4 py-5 lg:px-8">
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
-          className="cursor-pointer rounded-lg p-2 text-ink hover:bg-white lg:hidden"
+          className="cursor-pointer rounded-lg p-2 text-ink hover:bg-surface lg:hidden"
           aria-label="Abrir menu"
         >
           <IconMenu className="h-5 w-5" />
@@ -45,8 +47,18 @@ export default function Topbar({ title, onMenuClick }) {
 
       <div className="flex items-center gap-2">
         <button
+          onClick={() => setTema(alternarTema())}
+          aria-label={tema === 'escuro' ? 'Ativar modo claro' : 'Ativar modo escuro'}
+          title={tema === 'escuro' ? 'Modo claro' : 'Modo escuro'}
+          className="flex cursor-pointer items-center rounded-xl border border-line bg-surface p-2.5
+            text-ink transition-colors hover:border-brand-orange/40 hover:text-brand-orange"
+        >
+          {tema === 'escuro' ? <IconSun className="h-4 w-4" /> : <IconMoon className="h-4 w-4" />}
+        </button>
+
+        <button
           onClick={() => setConfirmarLimpar(true)}
-          className="flex cursor-pointer items-center gap-2 rounded-xl border border-line bg-white px-3.5 py-2
+          className="flex cursor-pointer items-center gap-2 rounded-xl border border-line bg-surface px-3.5 py-2
             text-sm font-medium text-ink transition-colors hover:border-critical/30 hover:text-critical"
         >
           <IconTrash className="h-4 w-4" />
@@ -55,7 +67,7 @@ export default function Topbar({ title, onMenuClick }) {
 
         <button
           onClick={handleLogout}
-          className="flex cursor-pointer items-center gap-2 rounded-xl border border-line bg-white px-3.5 py-2
+          className="flex cursor-pointer items-center gap-2 rounded-xl border border-line bg-surface px-3.5 py-2
             text-sm font-medium text-ink transition-colors hover:border-critical/30 hover:text-critical"
         >
           <IconLogout className="h-4 w-4" />
@@ -64,7 +76,7 @@ export default function Topbar({ title, onMenuClick }) {
       </div>
 
       {limparError && (
-        <div className="fixed right-4 top-20 z-50 max-w-sm rounded-xl border border-critical/20 bg-white px-4 py-3 text-sm text-critical shadow-lg lg:right-8">
+        <div className="fixed right-4 top-20 z-50 max-w-sm rounded-xl border border-critical/20 bg-surface px-4 py-3 text-sm text-critical shadow-lg lg:right-8">
           {limparError}
         </div>
       )}

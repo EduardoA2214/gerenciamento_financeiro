@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import FundoImagem from './ui/FundoImagem';
 import { isAuthenticated } from '../utils/auth';
 
 const TITLES = {
@@ -45,9 +46,10 @@ export default function ProtectedLayout() {
         />
       )}
 
-      <div className="flex min-h-screen flex-1 flex-col lg:pl-0">
+      <div className="relative flex min-h-screen flex-1 flex-col lg:pl-0">
+        <FundoImagem />
         <Topbar title={TITLES[location.pathname] || 'Finanças'} onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 px-4 pb-10 lg:px-8">
+        <main className="relative flex-1 px-4 pb-10 lg:px-8">
           <div key={location.pathname} className="animate-page">
             <Outlet />
           </div>

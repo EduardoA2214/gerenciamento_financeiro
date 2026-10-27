@@ -49,50 +49,95 @@ function ensureColumn(table, column, definition) {
   });
 }
 
-function initializeSchema() {
-  return run(`
+const TABELAS_FINANCEIRAS = ['gastos', 'gastos_fixos', 'salarios', 'rendas_fixas', 'categorias'];
+
+// Antes de cada perfil ter o próprio sistema, as tabelas financeiras eram
+// compartilhadas e não tinham usuario_id. Esses dados não pertencem a ninguém,
+// então as tabelas antigas são descartadas e recriadas já separadas por perfil.
+async function migrarParaDadosPorUsuario() {
+  const colunas = await all('PRAGMA table_info(salarios)');
+  const tabelaExiste = colunas.length > 0;
+  const jaMigrado = colunas.some((c) => c.name === 'usuario_id');
+  if (!tabelaExiste || jaMigrado) return;
+
+  for (const tabela of TABELAS_FINANCEIRAS) {
+    await run(`DROP TABLE IF EXISTS ${tabela}`);
+  }
+}
+
+async function initializeSchema() {
+  await run(`
+    CREATE TABLE IF NOT EXISTS usuarios (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      usuario TEXT NOT NULL UNIQUE,
+      senha_hash TEXT NOT NULL,
+      foto_perfil TEXT,
+      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  await ensureColumn('usuarios', 'foto_perfil', 'foto_perfil TEXT');
+
+  await migrarParaDadosPorUsuario();
+
+  await run(`
     CREATE TABLE IF NOT EXISTS categorias (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nome TEXT NOT NULL UNIQUE
+      usuario_id INTEGER NOT NULL,
+      nome TEXT NOT NULL,
+      UNIQUE (usuario_id, nome),
+      FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
     )
-  `)
-    .then(() => run(`
-      CREATE TABLE IF NOT EXISTS salarios (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        valor REAL NOT NULL,
-        descricao TEXT,
-        data DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `))
-    .then(() => run(`
-      CREATE TABLE IF NOT EXISTS gastos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        valor REAL NOT NULL,
-        descricao TEXT NOT NULL,
-        categoria_id INTEGER,
-        data DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (categoria_id) REFERENCES categorias(id)
-      )
-    `))
-    .then(() => run(`
-      CREATE TABLE IF NOT EXISTS rendas_fixas (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        descricao TEXT NOT NULL,
-        valor REAL NOT NULL,
-        dia_mes INTEGER NOT NULL,
-        criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `))
-    .then(() => run(`
-      CREATE TABLE IF NOT EXISTS usuarios (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        usuario TEXT NOT NULL UNIQUE,
-        senha_hash TEXT NOT NULL,
-        foto_perfil TEXT,
-        criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `))
-    .then(() => ensureColumn('usuarios', 'foto_perfil', 'foto_perfil TEXT'));
+  `);
+  await run(`
+    CREATE TABLE IF NOT EXISTS salarios (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      usuario_id INTEGER NOT NULL,
+      valor REAL NOT NULL,
+      descricao TEXT,
+      data DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+    )
+  `);
+  await run(`
+    CREATE TABLE IF NOT EXISTS gastos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      usuario_id INTEGER NOT NULL,
+      valor REAL NOT NULL,
+      descricao TEXT NOT NULL,
+      categoria_id INTEGER,
+      data DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+      FOREIGN KEY (categoria_id) REFERENCES categorias(id)
+    )
+  `);
+  await run(`
+    CREATE TABLE IF NOT EXISTS rendas_fixas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      usuario_id INTEGER NOT NULL,
+      descricao TEXT NOT NULL,
+      valor REAL NOT NULL,
+      dia_mes INTEGER NOT NULL,
+      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+    )
+  `);
+  await run(`
+    CREATE TABLE IF NOT EXISTS gastos_fixos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      usuario_id INTEGER NOT NULL,
+      descricao TEXT NOT NULL,
+      valor REAL NOT NULL,
+      dia_mes INTEGER NOT NULL,
+      categoria_id INTEGER,
+      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+      FOREIGN KEY (categoria_id) REFERENCES categorias(id)
+    )
+  `);
+
+  for (const tabela of TABELAS_FINANCEIRAS) {
+    await run(`CREATE INDEX IF NOT EXISTS idx_${tabela}_usuario ON ${tabela} (usuario_id)`);
+  }
 }
 
 function closeDb() {

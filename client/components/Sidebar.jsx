@@ -31,7 +31,7 @@ export default function Sidebar({ open, onNavigate }) {
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col bg-gradient-to-b from-navy-700 to-brand-orange text-white
+      className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col bg-gradient-to-b from-navy-700 to-brand-orange text-white dark:from-[#0d1530] dark:to-[#03050b] dark:border-r dark:border-line
         transition-transform duration-200 lg:static lg:translate-x-0
         ${open ? 'translate-x-0' : '-translate-x-full'}`}
     >
@@ -70,7 +70,7 @@ export default function Sidebar({ open, onNavigate }) {
             onClick={onNavigate}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-full px-4 py-2.5 text-sm font-medium transition-colors ${
-                isActive ? 'bg-white text-navy-900 shadow-md' : 'text-white/70 hover:bg-white/10 hover:text-white'
+                isActive ? 'bg-white text-navy-900 shadow-md dark:bg-brand-orange dark:text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'
               }`
             }
           >

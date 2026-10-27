@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Modo escuro ativado pela classe .dark no <html> (ver utils/tema.js) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
 
@@ -13,16 +16,41 @@
   --color-brand-orange-dark: #3745cf;
 
   --color-page: #f3f2fc;
+  --color-surface: #ffffff;
   --color-ink: #1f2937;
   --color-ink-muted: #8a93a6;
   --color-line: #e6e9f2;
 
   --color-good: #0ca30c;
   --color-critical: #d03b3b;
+
+  --color-chart-axis: #c3c2b7;
+  --color-chart-tick: #898781;
 }
 
 :root {
   color-scheme: light;
+}
+
+/* Modo escuro: fundo quase preto com superfícies em azul-marinho escuro */
+:root.dark {
+  color-scheme: dark;
+
+  --color-page: #05070d;
+  --color-surface: #0b1222;
+  --color-ink: #e3e8f4;
+  --color-ink-muted: #7b88a5;
+  --color-line: #1a2540;
+
+  --color-good: #22c55e;
+  --color-critical: #f05252;
+
+  --color-chart-axis: #2a3757;
+  --color-chart-tick: #7b88a5;
+}
+
+body {
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 body {

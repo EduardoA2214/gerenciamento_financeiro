@@ -16,6 +16,12 @@ export const listGastos = () => api.get('/gastos');
 export const createGasto = (valor, descricao, categoria) => api.post('/gastos', { valor, descricao, categoria });
 export const deleteGasto = (id) => api.delete(`/gastos/${id}`);
 
+export const listGastosFixos = () => api.get('/gastos-fixos');
+export const createGastoFixo = (descricao, valor, diaMes, categoria) =>
+  api.post('/gastos-fixos', { descricao, valor, diaMes, categoria });
+export const deleteGastoFixo = (id) => api.delete(`/gastos-fixos/${id}`);
+export const lancarGastoFixo = (id) => api.post(`/gastos-fixos/${id}/lancar`, {});
+
 export const listCategorias = () => api.get('/categorias');
 export const createCategoria = (nome) => api.post('/categorias', { nome });
 export const deleteCategoria = (id) => api.delete(`/categorias/${id}`);

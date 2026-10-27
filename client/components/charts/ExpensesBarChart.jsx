@@ -22,7 +22,7 @@ function ChartTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
   const { categoria, total } = payload[0].payload;
   return (
-    <div className="rounded-lg border border-line bg-white px-3 py-2 text-xs shadow-md">
+    <div className="rounded-lg border border-line bg-surface px-3 py-2 text-xs shadow-md">
       <p className="font-semibold text-ink">{categoria}</p>
       <p className="text-ink-muted">{formatCurrency(total)}</p>
     </div>
@@ -49,18 +49,18 @@ export default function ExpensesBarChart({ gastosPorCategoria }) {
       ) : (
         <ResponsiveContainer width="100%" height={260}>
           <BarChart data={data} margin={{ top: 8, right: 8, left: 8, bottom: 0 }} barCategoryGap="30%">
-            <CartesianGrid vertical={false} stroke="#e1e0d9" />
+            <CartesianGrid vertical={false} stroke="var(--color-line)" />
             <XAxis
               dataKey="categoria"
               tickLine={false}
-              axisLine={{ stroke: '#c3c2b7' }}
-              tick={{ fill: '#898781', fontSize: 12 }}
+              axisLine={{ stroke: 'var(--color-chart-axis)' }}
+              tick={{ fill: 'var(--color-chart-tick)', fontSize: 12 }}
               interval={0}
               angle={data.length > 4 ? -20 : 0}
               textAnchor={data.length > 4 ? 'end' : 'middle'}
               height={data.length > 4 ? 44 : 24}
             />
-            <Tooltip cursor={{ fill: 'rgba(27,42,74,0.04)' }} content={<ChartTooltip />} />
+            <Tooltip cursor={{ fill: 'var(--color-line)', fillOpacity: 0.4 }} content={<ChartTooltip />} />
             <Bar dataKey="total" radius={[4, 4, 0, 0]} maxBarSize={40}>
               {data.map((entry, index) => (
                 <Cell

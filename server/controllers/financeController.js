@@ -1,14 +1,18 @@
 const { run, all, get } = require('../db');
 
+// Todas as consultas são filtradas pelo usuário logado (req.usuario.id, vindo do
+// token), então cada perfil só enxerga e altera o próprio sistema financeiro.
+
 async function createSalary(req, res) {
   try {
+    const usuarioId = req.usuario.id;
     const { valor, descricao = 'Renda' } = req.body;
 
     if (typeof valor !== 'number' || Number.isNaN(valor) || valor <= 0) {
       return res.status(400).json({ error: 'O valor da renda deve ser um número maior que zero.' });
     }
 
-    const result = await run('INSERT INTO salarios (valor, descricao) VALUES (?, ?)', [valor, descricao]);
+    const result = await run('INSERT INTO salarios (usuario_id, valor, descricao) VALUES (?, ?, ?)', [usuarioId, valor, descricao]);
     return res.status(201).json({ id: result.id, valor, descricao, message: 'Renda cadastrada com sucesso.' });
   } catch (error) {
     console.error('Erro ao cadastrar renda:', error);
@@ -18,7 +22,10 @@ async function createSalary(req, res) {
 
 async function listSalaries(req, res) {
   try {
-    const rows = await all('SELECT * FROM salarios ORDER BY data DESC');
+    const rows = await all(
+      'SELECT id, valor, descricao, data FROM salarios WHERE usuario_id = ? ORDER BY data DESC',
+      [req.usuario.id]
+    );
     return res.json(rows);
   } catch (error) {
     console.error('Erro ao buscar renda:', error);
@@ -28,14 +35,15 @@ async function listSalaries(req, res) {
 
 async function deleteSalary(req, res) {
   try {
+    const usuarioId = req.usuario.id;
     const { id } = req.params;
 
-    const salario = await get('SELECT id FROM salarios WHERE id = ?', [id]);
+    const salario = await get('SELECT id FROM salarios WHERE id = ? AND usuario_id = ?', [id, usuarioId]);
     if (!salario) {
       return res.status(404).json({ error: 'Renda não encontrada.' });
     }
 
-    await run('DELETE FROM salarios WHERE id = ?', [id]);
+    await run('DELETE FROM salarios WHERE id = ? AND usuario_id = ?', [id, usuarioId]);
     return res.json({ message: 'Renda excluída com sucesso.' });
   } catch (error) {
     console.error('Erro ao excluir renda:', error);
@@ -45,6 +53,7 @@ async function deleteSalary(req, res) {
 
 async function createRendaFixa(req, res) {
   try {
+    const usuarioId = req.usuario.id;
     const { descricao, valor, diaMes } = req.body;
 
     if (!descricao || typeof descricao !== 'string' || descricao.trim() === '') {
@@ -61,8 +70,8 @@ async function createRendaFixa(req, res) {
     }
 
     const result = await run(
-      'INSERT INTO rendas_fixas (descricao, valor, dia_mes) VALUES (?, ?, ?)',
-      [descricao.trim(), valor, dia]
+      'INSERT INTO rendas_fixas (usuario_id, descricao, valor, dia_mes) VALUES (?, ?, ?, ?)',
+      [usuarioId, descricao.trim(), valor, dia]
     );
 
     return res.status(201).json({
@@ -80,7 +89,10 @@ async function createRendaFixa(req, res) {
 
 async function listRendasFixas(req, res) {
   try {
-    const rows = await all('SELECT id, descricao, valor, dia_mes AS diaMes, criado_em AS criadoEm FROM rendas_fixas ORDER BY dia_mes ASC');
+    const rows = await all(
+      'SELECT id, descricao, valor, dia_mes AS diaMes, criado_em AS criadoEm FROM rendas_fixas WHERE usuario_id = ? ORDER BY dia_mes ASC',
+      [req.usuario.id]
+    );
     return res.json(rows);
   } catch (error) {
     console.error('Erro ao buscar rendas fixas:', error);
@@ -90,14 +102,15 @@ async function listRendasFixas(req, res) {
 
 async function deleteRendaFixa(req, res) {
   try {
+    const usuarioId = req.usuario.id;
     const { id } = req.params;
 
-    const rendaFixa = await get('SELECT id FROM rendas_fixas WHERE id = ?', [id]);
+    const rendaFixa = await get('SELECT id FROM rendas_fixas WHERE id = ? AND usuario_id = ?', [id, usuarioId]);
     if (!rendaFixa) {
       return res.status(404).json({ error: 'Renda fixa não encontrada.' });
     }
 
-    await run('DELETE FROM rendas_fixas WHERE id = ?', [id]);
+    await run('DELETE FROM rendas_fixas WHERE id = ? AND usuario_id = ?', [id, usuarioId]);
     return res.json({ message: 'Renda fixa excluída com sucesso.' });
   } catch (error) {
     console.error('Erro ao excluir renda fixa:', error);
@@ -105,23 +118,24 @@ async function deleteRendaFixa(req, res) {
   }
 }
 
-async function createCategory(name) {
+async function createCategory(name, usuarioId) {
   const trimmedName = String(name || '').trim();
   if (!trimmedName) {
     throw new Error('Categoria inválida.');
   }
 
-  const existing = await get('SELECT id FROM categorias WHERE nome = ?', [trimmedName]);
+  const existing = await get('SELECT id FROM categorias WHERE nome = ? AND usuario_id = ?', [trimmedName, usuarioId]);
   if (existing) {
     return existing.id;
   }
 
-  const result = await run('INSERT INTO categorias (nome) VALUES (?)', [trimmedName]);
+  const result = await run('INSERT INTO categorias (usuario_id, nome) VALUES (?, ?)', [usuarioId, trimmedName]);
   return result.id;
 }
 
 async function createExpense(req, res) {
   try {
+    const usuarioId = req.usuario.id;
     const { valor, descricao, categoria = 'Outros' } = req.body;
 
     if (typeof valor !== 'number' || Number.isNaN(valor) || valor <= 0) {
@@ -132,8 +146,11 @@ async function createExpense(req, res) {
       return res.status(400).json({ error: 'A descrição do gasto é obrigatória.' });
     }
 
-    const categoriaId = await createCategory(categoria);
-    const result = await run('INSERT INTO gastos (valor, descricao, categoria_id) VALUES (?, ?, ?)', [valor, descricao.trim(), categoriaId]);
+    const categoriaId = await createCategory(categoria, usuarioId);
+    const result = await run(
+      'INSERT INTO gastos (usuario_id, valor, descricao, categoria_id) VALUES (?, ?, ?, ?)',
+      [usuarioId, valor, descricao.trim(), categoriaId]
+    );
     const categoriaRow = await get('SELECT nome FROM categorias WHERE id = ?', [categoriaId]);
 
     return res.status(201).json({
@@ -155,8 +172,9 @@ async function listExpenses(req, res) {
       SELECT g.id, g.valor, g.descricao, g.data, c.nome AS categoria
       FROM gastos g
       LEFT JOIN categorias c ON c.id = g.categoria_id
+      WHERE g.usuario_id = ?
       ORDER BY g.data DESC
-    `);
+    `, [req.usuario.id]);
     return res.json(rows);
   } catch (error) {
     console.error('Erro ao buscar gastos:', error);
@@ -166,14 +184,15 @@ async function listExpenses(req, res) {
 
 async function deleteExpense(req, res) {
   try {
+    const usuarioId = req.usuario.id;
     const { id } = req.params;
 
-    const gasto = await get('SELECT id FROM gastos WHERE id = ?', [id]);
+    const gasto = await get('SELECT id FROM gastos WHERE id = ? AND usuario_id = ?', [id, usuarioId]);
     if (!gasto) {
       return res.status(404).json({ error: 'Gasto não encontrado.' });
     }
 
-    await run('DELETE FROM gastos WHERE id = ?', [id]);
+    await run('DELETE FROM gastos WHERE id = ? AND usuario_id = ?', [id, usuarioId]);
     return res.json({ message: 'Gasto excluído com sucesso.' });
   } catch (error) {
     console.error('Erro ao excluir gasto:', error);
@@ -181,9 +200,109 @@ async function deleteExpense(req, res) {
   }
 }
 
+async function createGastoFixo(req, res) {
+  try {
+    const usuarioId = req.usuario.id;
+    const { descricao, valor, diaMes, categoria = 'Outros' } = req.body;
+
+    if (!descricao || typeof descricao !== 'string' || descricao.trim() === '') {
+      return res.status(400).json({ error: 'A descrição do gasto é obrigatória.' });
+    }
+
+    if (typeof valor !== 'number' || Number.isNaN(valor) || valor <= 0) {
+      return res.status(400).json({ error: 'O valor do gasto deve ser um número maior que zero.' });
+    }
+
+    const dia = Number(diaMes);
+    if (!Number.isInteger(dia) || dia < 1 || dia > 31) {
+      return res.status(400).json({ error: 'O dia do mês deve ser um número entre 1 e 31.' });
+    }
+
+    const categoriaId = await createCategory(categoria, usuarioId);
+    const result = await run(
+      'INSERT INTO gastos_fixos (usuario_id, descricao, valor, dia_mes, categoria_id) VALUES (?, ?, ?, ?, ?)',
+      [usuarioId, descricao.trim(), valor, dia, categoriaId]
+    );
+    const categoriaRow = await get('SELECT nome FROM categorias WHERE id = ?', [categoriaId]);
+
+    return res.status(201).json({
+      id: result.id,
+      descricao: descricao.trim(),
+      valor,
+      diaMes: dia,
+      categoria: categoriaRow?.nome || 'Outros',
+      message: 'Gasto fixo cadastrado com sucesso.'
+    });
+  } catch (error) {
+    console.error('Erro ao cadastrar gasto fixo:', error);
+    return res.status(500).json({ error: 'Erro ao cadastrar gasto fixo.' });
+  }
+}
+
+async function listGastosFixos(req, res) {
+  try {
+    const rows = await all(`
+      SELECT gf.id, gf.descricao, gf.valor, gf.dia_mes AS diaMes, gf.criado_em AS criadoEm, c.nome AS categoria
+      FROM gastos_fixos gf
+      LEFT JOIN categorias c ON c.id = gf.categoria_id
+      WHERE gf.usuario_id = ?
+      ORDER BY gf.dia_mes ASC
+    `, [req.usuario.id]);
+    return res.json(rows);
+  } catch (error) {
+    console.error('Erro ao buscar gastos fixos:', error);
+    return res.status(500).json({ error: 'Erro ao buscar gastos fixos.' });
+  }
+}
+
+async function deleteGastoFixo(req, res) {
+  try {
+    const usuarioId = req.usuario.id;
+    const { id } = req.params;
+
+    const gastoFixo = await get('SELECT id FROM gastos_fixos WHERE id = ? AND usuario_id = ?', [id, usuarioId]);
+    if (!gastoFixo) {
+      return res.status(404).json({ error: 'Gasto fixo não encontrado.' });
+    }
+
+    await run('DELETE FROM gastos_fixos WHERE id = ? AND usuario_id = ?', [id, usuarioId]);
+    return res.json({ message: 'Gasto fixo excluído com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao excluir gasto fixo:', error);
+    return res.status(500).json({ error: 'Erro ao excluir gasto fixo.' });
+  }
+}
+
+async function lancarGastoFixo(req, res) {
+  try {
+    const usuarioId = req.usuario.id;
+    const { id } = req.params;
+
+    const gastoFixo = await get('SELECT * FROM gastos_fixos WHERE id = ? AND usuario_id = ?', [id, usuarioId]);
+    if (!gastoFixo) {
+      return res.status(404).json({ error: 'Gasto fixo não encontrado.' });
+    }
+
+    const result = await run(
+      'INSERT INTO gastos (usuario_id, valor, descricao, categoria_id) VALUES (?, ?, ?, ?)',
+      [usuarioId, gastoFixo.valor, gastoFixo.descricao, gastoFixo.categoria_id]
+    );
+
+    return res.status(201).json({
+      id: result.id,
+      valor: gastoFixo.valor,
+      descricao: gastoFixo.descricao,
+      message: 'Gasto lançado com sucesso.'
+    });
+  } catch (error) {
+    console.error('Erro ao lançar gasto fixo:', error);
+    return res.status(500).json({ error: 'Erro ao lançar gasto fixo.' });
+  }
+}
+
 async function listCategories(req, res) {
   try {
-    const rows = await all('SELECT * FROM categorias ORDER BY nome ASC');
+    const rows = await all('SELECT id, nome FROM categorias WHERE usuario_id = ? ORDER BY nome ASC', [req.usuario.id]);
     return res.json(rows);
   } catch (error) {
     console.error('Erro ao buscar categorias:', error);
@@ -193,6 +312,7 @@ async function listCategories(req, res) {
 
 async function createCategoryHandler(req, res) {
   try {
+    const usuarioId = req.usuario.id;
     const { nome } = req.body;
     const trimmedName = String(nome || '').trim();
 
@@ -200,12 +320,12 @@ async function createCategoryHandler(req, res) {
       return res.status(400).json({ error: 'O nome da categoria é obrigatório.' });
     }
 
-    const existing = await get('SELECT id FROM categorias WHERE nome = ?', [trimmedName]);
+    const existing = await get('SELECT id FROM categorias WHERE nome = ? AND usuario_id = ?', [trimmedName, usuarioId]);
     if (existing) {
       return res.status(409).json({ error: 'Essa categoria já existe.' });
     }
 
-    const result = await run('INSERT INTO categorias (nome) VALUES (?)', [trimmedName]);
+    const result = await run('INSERT INTO categorias (usuario_id, nome) VALUES (?, ?)', [usuarioId, trimmedName]);
     return res.status(201).json({ id: result.id, nome: trimmedName, message: 'Categoria criada com sucesso.' });
   } catch (error) {
     console.error('Erro ao criar categoria:', error);
@@ -215,15 +335,17 @@ async function createCategoryHandler(req, res) {
 
 async function deleteCategory(req, res) {
   try {
+    const usuarioId = req.usuario.id;
     const { id } = req.params;
 
-    const categoria = await get('SELECT id FROM categorias WHERE id = ?', [id]);
+    const categoria = await get('SELECT id FROM categorias WHERE id = ? AND usuario_id = ?', [id, usuarioId]);
     if (!categoria) {
       return res.status(404).json({ error: 'Categoria não encontrada.' });
     }
 
-    await run('UPDATE gastos SET categoria_id = NULL WHERE categoria_id = ?', [id]);
-    await run('DELETE FROM categorias WHERE id = ?', [id]);
+    await run('UPDATE gastos SET categoria_id = NULL WHERE categoria_id = ? AND usuario_id = ?', [id, usuarioId]);
+    await run('UPDATE gastos_fixos SET categoria_id = NULL WHERE categoria_id = ? AND usuario_id = ?', [id, usuarioId]);
+    await run('DELETE FROM categorias WHERE id = ? AND usuario_id = ?', [id, usuarioId]);
 
     return res.json({ message: 'Categoria excluída com sucesso.' });
   } catch (error) {
@@ -234,22 +356,28 @@ async function deleteCategory(req, res) {
 
 async function getSummary(req, res) {
   try {
-    const salarios = await all('SELECT COALESCE(SUM(valor), 0) AS totalSalario FROM salarios');
-    const gastos = await all('SELECT COALESCE(SUM(valor), 0) AS totalGastos, COUNT(*) AS quantidade FROM gastos');
+    const usuarioId = req.usuario.id;
+    const salarios = await all('SELECT COALESCE(SUM(valor), 0) AS totalSalario FROM salarios WHERE usuario_id = ?', [usuarioId]);
+    const gastos = await all(
+      'SELECT COALESCE(SUM(valor), 0) AS totalGastos, COUNT(*) AS quantidade FROM gastos WHERE usuario_id = ?',
+      [usuarioId]
+    );
     const categorias = await all(`
       SELECT c.nome AS categoria, SUM(g.valor) AS total
       FROM gastos g
       LEFT JOIN categorias c ON c.id = g.categoria_id
+      WHERE g.usuario_id = ?
       GROUP BY c.nome
       ORDER BY total DESC
-    `);
+    `, [usuarioId]);
 
     const totalSalario = Number(salarios[0].totalSalario || 0);
     const totalGastos = Number(gastos[0].totalGastos || 0);
     const saldo = totalSalario - totalGastos;
 
     const gastosPorCategoria = categorias.reduce((acc, item) => {
-      acc[item.categoria || 'Outros'] = Number(item.total || 0);
+      const nome = item.categoria || 'Outros';
+      acc[nome] = (acc[nome] || 0) + Number(item.total || 0);
       return acc;
     }, {});
 
@@ -268,15 +396,16 @@ async function getSummary(req, res) {
 
 async function lancarRendaFixa(req, res) {
   try {
+    const usuarioId = req.usuario.id;
     const { id } = req.params;
 
-    const rendaFixa = await get('SELECT * FROM rendas_fixas WHERE id = ?', [id]);
+    const rendaFixa = await get('SELECT * FROM rendas_fixas WHERE id = ? AND usuario_id = ?', [id, usuarioId]);
     if (!rendaFixa) {
       return res.status(404).json({ error: 'Renda fixa não encontrada.' });
     }
 
-    const salariosResumo = await all('SELECT COALESCE(SUM(valor), 0) AS total FROM salarios');
-    const gastosResumo = await all('SELECT COALESCE(SUM(valor), 0) AS total FROM gastos');
+    const salariosResumo = await all('SELECT COALESCE(SUM(valor), 0) AS total FROM salarios WHERE usuario_id = ?', [usuarioId]);
+    const gastosResumo = await all('SELECT COALESCE(SUM(valor), 0) AS total FROM gastos WHERE usuario_id = ?', [usuarioId]);
     const saldoAnterior = Number(salariosResumo[0].total || 0) - Number(gastosResumo[0].total || 0);
     const novoValor = saldoAnterior + Number(rendaFixa.valor);
 
@@ -284,9 +413,9 @@ async function lancarRendaFixa(req, res) {
     try {
       // Ao entrar um novo salário, os gastos do mês anterior são zerados (a % gasta
       // recomeça do zero) e o saldo que restava é somado à nova renda, sem se perder.
-      await run('DELETE FROM gastos');
-      await run('DELETE FROM salarios');
-      await run('INSERT INTO salarios (valor, descricao) VALUES (?, ?)', [novoValor, rendaFixa.descricao]);
+      await run('DELETE FROM gastos WHERE usuario_id = ?', [usuarioId]);
+      await run('DELETE FROM salarios WHERE usuario_id = ?', [usuarioId]);
+      await run('INSERT INTO salarios (usuario_id, valor, descricao) VALUES (?, ?, ?)', [usuarioId, novoValor, rendaFixa.descricao]);
       await run('COMMIT');
     } catch (transactionError) {
       await run('ROLLBACK');
@@ -306,10 +435,11 @@ async function lancarRendaFixa(req, res) {
 
 async function limparDados(req, res) {
   try {
+    const usuarioId = req.usuario.id;
     await run('BEGIN TRANSACTION');
     try {
-      await run('DELETE FROM gastos');
-      await run('DELETE FROM salarios');
+      await run('DELETE FROM gastos WHERE usuario_id = ?', [usuarioId]);
+      await run('DELETE FROM salarios WHERE usuario_id = ?', [usuarioId]);
       await run('COMMIT');
     } catch (transactionError) {
       await run('ROLLBACK');
@@ -334,6 +464,10 @@ module.exports = {
   createExpense,
   listExpenses,
   deleteExpense,
+  createGastoFixo,
+  listGastosFixos,
+  deleteGastoFixo,
+  lancarGastoFixo,
   listCategories,
   createCategoryHandler,
   deleteCategory,

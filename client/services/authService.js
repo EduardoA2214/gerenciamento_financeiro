@@ -1,5 +1,5 @@
 import { api } from './api';
-import { setSession, setFoto, clearSession } from '../utils/auth';
+import { setSession, setFoto, clearSession, esquecerUltimoUsuario } from '../utils/auth';
 
 const PROFILE_UPDATED_EVENT = 'auth:profile-updated';
 
@@ -45,5 +45,12 @@ export async function removerFoto() {
   const data = await api.delete('/auth/foto');
   setFoto(null);
   notifyProfileUpdated();
+  return data;
+}
+
+export async function excluirConta(senha) {
+  const data = await api.delete('/auth/conta', { body: { senha } });
+  clearSession();
+  esquecerUltimoUsuario();
   return data;
 }

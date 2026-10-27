@@ -39,6 +39,7 @@ export default function Renda() {
   const [fixaSubmitting, setFixaSubmitting] = useState(false);
   const [fixaError, setFixaError] = useState('');
   const [fixaDeletingId, setFixaDeletingId] = useState(null);
+  const [fixaParaExcluir, setFixaParaExcluir] = useState(null);
   const [lancandoId, setLancandoId] = useState(null);
   const [fixaParaLancar, setFixaParaLancar] = useState(null);
 
@@ -153,7 +154,10 @@ export default function Renda() {
     }
   }
 
-  async function handleDeleteFixa(rendaFixa) {
+  async function handleConfirmDeleteFixa() {
+    const rendaFixa = fixaParaExcluir;
+    if (!rendaFixa) return;
+
     setFixaError('');
     setFixaDeletingId(rendaFixa.id);
     try {
@@ -163,6 +167,7 @@ export default function Renda() {
       setFixaError(err.message);
     } finally {
       setFixaDeletingId(null);
+      setFixaParaExcluir(null);
     }
   }
 
@@ -337,7 +342,7 @@ export default function Renda() {
                     </Button>
                     <button
                       type="button"
-                      onClick={() => handleDeleteFixa(rf)}
+                      onClick={() => setFixaParaExcluir(rf)}
                       disabled={fixaDeletingId === rf.id}
                       aria-label={`Excluir renda fixa ${rf.descricao}`}
                       className="cursor-pointer rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-critical/10 hover:text-critical disabled:opacity-50"
@@ -411,6 +416,20 @@ export default function Renda() {
         loading={deletingId === rendaParaExcluir?.id}
         onConfirm={handleConfirmDelete}
         onCancel={() => setRendaParaExcluir(null)}
+      />
+
+      <ConfirmDialog
+        open={Boolean(fixaParaExcluir)}
+        title="Excluir renda fixa"
+        message={
+          fixaParaExcluir
+            ? `Excluir a renda fixa "${fixaParaExcluir.descricao}" de ${formatCurrency(fixaParaExcluir.valor)}? As rendas já lançadas no histórico não serão apagadas.`
+            : ''
+        }
+        confirmLabel="Excluir"
+        loading={fixaDeletingId === fixaParaExcluir?.id}
+        onConfirm={handleConfirmDeleteFixa}
+        onCancel={() => setFixaParaExcluir(null)}
       />
 
       <ConfirmDialog

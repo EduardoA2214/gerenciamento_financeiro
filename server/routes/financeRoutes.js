@@ -10,6 +10,10 @@ const {
   createExpense,
   listExpenses,
   deleteExpense,
+  createGastoFixo,
+  listGastosFixos,
+  deleteGastoFixo,
+  lancarGastoFixo,
   listCategories,
   createCategoryHandler,
   deleteCategory,
@@ -31,6 +35,11 @@ router.post('/rendas-fixas/:id/lancar', lancarRendaFixa);
 router.post('/gastos', createExpense);
 router.get('/gastos', listExpenses);
 router.delete('/gastos/:id', deleteExpense);
+
+router.post('/gastos-fixos', createGastoFixo);
+router.get('/gastos-fixos', listGastosFixos);
+router.delete('/gastos-fixos/:id', deleteGastoFixo);
+router.post('/gastos-fixos/:id/lancar', lancarGastoFixo);
 
 router.get('/categorias', listCategories);
 router.post('/categorias', createCategoryHandler);

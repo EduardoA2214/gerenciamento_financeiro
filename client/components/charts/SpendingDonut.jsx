@@ -2,9 +2,9 @@ import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
 import Card from '../ui/Card';
 import { formatCurrency } from '../../utils/format';
 
-const TRACK_COLOR = '#e6e9f2';
+const TRACK_COLOR = 'var(--color-line)';
 const ACCENT = '#4a5ce8';
-const CRITICAL = '#d03b3b';
+const CRITICAL = 'var(--color-critical)';
 
 export default function SpendingDonut({ totalSalario, totalGastos, saldo }) {
   const overspent = totalSalario > 0 ? totalGastos > totalSalario : totalGastos > 0;
