@@ -213,6 +213,10 @@ test('alterar senha e excluir conta exigem a senha', async () => {
   const loginDepois = await request(app).post('/api/auth/login').send({ usuario: 'carla', senha: 'nova12345' });
   assert.equal(loginDepois.status, 401);
 
+  // O token antigo da conta excluída deixa de funcionar
+  const tokenAntigo = await request(app).get('/api/resumo').set(auth);
+  assert.equal(tokenAntigo.status, 401);
+
   // Os dados financeiros da conta excluída também somem
   const novoRegistro = await request(app).post('/api/auth/registrar').send({ usuario: 'carla', senha: 'senha123' });
   const resumo = await request(app)
